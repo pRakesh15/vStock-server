@@ -1,0 +1,215 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Bun
+.bun
+bun.lockb
+
+# Environment variables - CRITICAL: Never commit secrets!
+.env
+.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Stylelint cache
+.stylelintcache
+
+# Optional npm cache directory
+.npm
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Temporary folders
+tmp/
+temp/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Drizzle generated files
+drizzle/
+
+# AWS credentials - SECURITY: Never commit AWS keys!
+.aws/
+aws-credentials.json
+
+# SSH keys - SECURITY: Never commit private keys!
+*.pem
+*.key
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# SSL certificates
+*.crt
+*.cer
+*.ca-bundle
+*.p7b
+*.p7s
+*.pfx
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Security sensitive files - CRITICAL: Never commit secrets!
+secrets.json
+private-keys/
+*.secrets
+auth-keys/
+encryption-keys/
+api-keys.json
+
+# Test files that might contain sensitive data
+test-data/
+test-credentials/
+test-secrets/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Terraform (if used for infrastructure)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Kubernetes secrets (if any)
+*-secret.yaml
+secrets/
+
+# CI/CD sensitive files
+.github/workflows/secrets/
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/tasks.json
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Project specific
+uploads/
+temp-files/
+cache/
+user-uploads/
+
+# S3 and file uploads
+uploaded-images/
+temp-uploads/
+
+# ERPNext specific
+erpnext-backups/
+erp-logs/
+
+# Monitoring and analytics
+.sentry-cli-rc
+
+# Local development
+local-config.json
+dev-secrets.json
+
+.claude
