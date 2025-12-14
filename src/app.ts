@@ -9,10 +9,9 @@ import { config } from "./config/index";
 import { pinoMiddleware } from "./config/logger";
 import { requestIdMiddleware } from "./middleware/request-id.middleware";
 import { errorHandler } from "./middleware/error.middleware";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
-
-
 
 const app = express();
 
@@ -29,10 +28,10 @@ app.use(
 
 app.use(compression());
 
-app.use(requestIdMiddleware);  //by this we don't need to right  all the (req,res and next) in all of the controller function .
-
-app.use(express.json({ limit: config.REQUEST_BODY_LIMIT || "900kb" }));
-app.use(express.urlencoded({ extended: true, limit: "900kb" }));
+app.use(requestIdMiddleware);  //helps for debuging distributed systems.
+app.use(express.json({ limit: config.REQUEST_BODY_LIMIT || "5000kb" }));
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true, limit: "5000kb" }));
 
 const apiLimiter = rateLimit({
     windowMs: Number(config.RATE_LIMIT_WINDOW_MS) || 60_000,

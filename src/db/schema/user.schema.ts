@@ -1,4 +1,3 @@
-// src/db/schema/user.schema.ts
 import {
   pgTable,
   uuid,
@@ -12,6 +11,7 @@ import { erpConnections } from "./erp.schema";
 
 export const userRoleEnum = pgEnum("user_role", ["admin", "client"]);
 
+//here we  create a table for the user.
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
 
