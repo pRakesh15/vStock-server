@@ -10,6 +10,7 @@ import { pinoMiddleware } from "./config/logger";
 import { requestIdMiddleware } from "./middleware/request-id.middleware";
 import { errorHandler } from "./middleware/error.middleware";
 import cookieParser from "cookie-parser";
+import userRoutes from "./modules/user/user.route";
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ const apiLimiter = rateLimit({
 app.use("/api/v1", apiLimiter);
 
 //here i add all the routs 
+app.use("/api/v1/users", userRoutes);
 
 app.get("/health", (_req: Request, res: Response) => res.status(200).json({ status: "ok" }));
 app.get("/ready", (_req: Request, res: Response) => {
