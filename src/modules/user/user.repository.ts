@@ -33,14 +33,14 @@ class UserRepository {
     return rows[0] ?? null;
   }
 
-  create(data: CreateUserInput & { passwordHash: string }) {
+ 
+ create(data: CreateUserInput & { passwordHash: string }) {
     return db.insert(users).values({
       email: data.email,
       passwordHash: data.passwordHash,
       role: data.role,
     });
   }
-
 
   update(
     id: string,

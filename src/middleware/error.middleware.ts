@@ -18,7 +18,6 @@ export function errorHandler(
     "Unhandled error occurred"
   );
 
-  // Avoid leaking internal error details in production
   const status = err.status || err.statusCode || 500;
 
   const response = {
