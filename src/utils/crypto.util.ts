@@ -55,7 +55,7 @@ export function decrypt(encrypted: {
   if (!encrypted?.iv || !encrypted?.content || !encrypted?.tag) {
     throw new Error("decrypt() called with invalid encrypted payload");
   }
-
+  console.log("incrept datta is ",encrypted?.content,encrypted?.iv)
   const decipher = crypto.createDecipheriv(
     ALGORITHM,
     SECRET_KEY,

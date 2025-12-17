@@ -62,8 +62,8 @@ class UserService {
         await tx.insert(erpConnections).values({
           userId: newUser.id,
           erpDomain: data.erpDomain,
-          encryptedApiKey: encryptedApiKey.content,
-          encryptedApiSecret: encryptedApiSecret.content,
+          encryptedApiKey: JSON.stringify(encryptedApiKey),
+          encryptedApiSecret: JSON.stringify(encryptedApiSecret),
         });
         console.log("erp created")
       }
