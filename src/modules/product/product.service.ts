@@ -11,11 +11,24 @@ import type {
   EditProductInput,
   GetProductsQuery,
 } from "./product.types";
+import { generateBarcode } from "../../utils/barcode.util";
 
 class ProductService {
   async create(userId: string, data: CreateProductInput) {
     const erpClient = await getERPClientForUser(userId);
-    await erpClient.createItem(mapCreateProductToERP(data));
+
+    const barcode = data.barcode ?? generateBarcode("PRD");
+
+    const payload = mapCreateProductToERP({
+      ...data,
+      barcode,
+    });
+
+    await erpClient.createItem(payload);
+
+    return {
+      barcode,
+    };
   }
 
   async update(userId: string, itemId: string, data: EditProductInput) {

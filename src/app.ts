@@ -13,6 +13,7 @@ import cookieParser from "cookie-parser";
 import userRoutes from "./modules/user/user.route";
 import erpRoutes from "./modules/erp/erp.routes";
 import productRoutes from "./modules/product/product.routes";
+import imageUploadrouter from "./modules/image-upload/imageUpload.routes";
 
 dotenv.config();
 
@@ -53,8 +54,13 @@ app.use("/api/v1", apiLimiter);
 app.use("/api/v1/users", userRoutes);
 //Erp Connection Routs
 app.use("/api/erp", erpRoutes);
+//image upload
+app.use("/api/imageUpload", imageUploadrouter);
 //Product Routs
 app.use("/api/v1/product", productRoutes);
+//shell rout
+
+//purchase rout
 
 
 
