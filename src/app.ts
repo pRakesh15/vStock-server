@@ -12,6 +12,7 @@ import { errorHandler } from "./middleware/error.middleware";
 import cookieParser from "cookie-parser";
 import userRoutes from "./modules/user/user.route";
 import erpRoutes from "./modules/erp/erp.routes";
+import productRoutes from "./modules/product/product.routes";
 
 dotenv.config();
 
@@ -48,8 +49,13 @@ const apiLimiter = rateLimit({
 app.use("/api/v1", apiLimiter);
 
 //here i add all the routs 
+//User Routs
 app.use("/api/v1/users", userRoutes);
+//Erp Connection Routs
 app.use("/api/erp", erpRoutes);
+//Product Routs
+app.use("/api/v1/product", productRoutes);
+
 
 
 app.get("/health", (_req: Request, res: Response) => res.status(200).json({ status: "ok" }));
