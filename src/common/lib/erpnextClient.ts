@@ -3,7 +3,7 @@ import parseERPNextErrorMessage from "../../utils/parseERPNextErrorMessage.util"
 import { getERPItemFieldNames, mapERPItemToProduct } from "../../utils/productFieldMap.util";
 import { AppError } from "../error/app-error";
 import { parseEncryptedPayload } from "./crypto.util";
-import type { ERPNextCreateItemPayload } from "./erpnext.types";
+import type { ERPNextCreateItemPayload, ERPNextPurchaseInvoicePayload, ERPNextSalesInvoicePayload } from "./erpnext.types";
 
 export interface ERPNextCredentials {
     erpDomain: string;
@@ -289,6 +289,274 @@ export class ERPNextClient {
 
         }
     }
+
+    async createPurchaseInvoice(
+        payload: ERPNextPurchaseInvoicePayload
+    ): Promise<ERPNextResponse> {
+        const url = this.getApiUrl("Purchase Invoice");
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext Purchase Invoice Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to create purchase invoice"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error (Purchase Invoice):", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async getPurchaseInvoices(params?: {
+        limit?: number;
+        offset?: number;
+    }) {
+        const url = new URL(this.getApiUrl("Purchase Invoice"));
+
+        url.searchParams.set("fields", JSON.stringify([
+            "name",
+            "supplier",
+            "posting_date",
+            "grand_total",
+            "status"
+        ]));
+
+        if (params?.limit) url.searchParams.set("limit_page_length", String(params.limit));
+        if (params?.offset) url.searchParams.set("limit_start", String(params.offset));
+
+        const response = await fetch(url.toString(), {
+            method: "GET",
+            headers: this.getHeaders(),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new AppError("Failed to fetch purchase invoices", 401);
+        }
+
+        return data;
+    }
+    async getPurchaseInvoiceById(id: string) {
+        const url = this.getApiUrl(`Purchase Invoice/${id}`);
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: this.getHeaders(),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new AppError("Purchase invoice not found", 404);
+        }
+
+        return data;
+    }
+
+
+    async createSalesInvoice(
+        payload: ERPNextSalesInvoicePayload
+    ): Promise<ERPNextResponse> {
+        const url = this.getApiUrl("Sales Invoice");
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext Sales Invoice Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to create sales invoice"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error (Sales Invoice):", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async getSalesInvoices(params?: {
+        limit?: number;
+        offset?: number;
+    }) {
+        const url = new URL(this.getApiUrl("Sales Invoice"));
+
+        url.searchParams.set("fields", JSON.stringify([
+            "name",
+            "customer",
+            "posting_date",
+            "grand_total",
+            "status"
+        ]));
+
+        if (params?.limit) url.searchParams.set("limit_page_length", String(params.limit));
+        if (params?.offset) url.searchParams.set("limit_start", String(params.offset));
+
+        const response = await fetch(url.toString(), {
+            method: "GET",
+            headers: this.getHeaders(),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new AppError("Failed to fetch sales invoices", 401);
+        }
+
+        return data;
+    }
+    async getSalesInvoiceById(id: string) {
+        const url = this.getApiUrl(`Sales Invoice/${id}`);
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: this.getHeaders(),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new AppError("Sales invoice not found", 404);
+        }
+
+        return data;
+    }
+
+    async getItemStock(itemCode: string): Promise<number> {
+        const url = new URL(this.getApiUrl("Bin"));
+
+        url.searchParams.set(
+            "filters",
+            JSON.stringify([["item_code", "=", itemCode]])
+        );
+        url.searchParams.set("fields", JSON.stringify(["actual_qty"]));
+
+        const response = await fetch(url.toString(), {
+            method: "GET",
+            headers: this.getHeaders(),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new AppError("Failed to fetch stock", 500);
+        }
+
+        return Array.isArray(data.data)
+            ? data.data.reduce((sum: number, row: any) => sum + (row.actual_qty || 0), 0)
+            : 0;
+    }
+
+    //common resources
+
+    async getCompanies() {
+        return this.fetchResource("Company");
+    }
+
+    async getWarehouses() {
+        return this.fetchResource("Warehouse");
+    }
+
+    async getSuppliers() {
+        return this.fetchResource("Supplier");
+    }
+
+    async getCustomers() {
+        return this.fetchResource("Customer");
+    }
+
+    private async fetchResource(resource: string) {
+        const url = this.getApiUrl(resource);
+        const res = await fetch(url, { headers: this.getHeaders() });
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new AppError(`Failed to fetch ${resource}`, 500);
+        }
+
+        return data.data;
+    }
+
+    async getLowStockItems(threshold: number) {
+        const url = new URL(this.getApiUrl("Bin"));
+
+        url.searchParams.set(
+            "filters",
+            JSON.stringify([["actual_qty", "<=", threshold]])
+        );
+
+        url.searchParams.set(
+            "fields",
+            JSON.stringify([
+                "item_code",
+                "warehouse",
+                "actual_qty"
+            ])
+        );
+
+        const res = await fetch(url.toString(), {
+            headers: this.getHeaders(),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new AppError("Failed to fetch low stock items", 500);
+        }
+
+        return data.data;
+    }
+
+
 
     async testConnection(): Promise<{
         success: boolean;

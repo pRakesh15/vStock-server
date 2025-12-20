@@ -24,3 +24,21 @@ export interface EncryptedPayload {
   content: string;
   tag: string;
 }
+
+export interface ERPNextInvoiceItem {
+  item_code: string;
+  qty: number;
+  rate?: number;
+}
+
+export interface ERPNextPurchaseInvoicePayload {
+  supplier: string;
+  posting_date: string;
+  items: ERPNextInvoiceItem[];
+}
+
+export interface ERPNextSalesInvoicePayload {
+  customer: string;
+  posting_date: string;
+  items: ERPNextInvoiceItem[];
+}

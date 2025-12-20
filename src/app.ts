@@ -14,6 +14,10 @@ import userRoutes from "./modules/user/user.route";
 import erpRoutes from "./modules/erp/erp.routes";
 import productRoutes from "./modules/product/product.routes";
 import imageUploadrouter from "./modules/image-upload/imageUpload.routes";
+import salesRoutes from "./modules/sales/sales.routes";
+import purchaseRoutes from "./modules/purchase/purchase.routes";
+import dashBoardRouter from "./modules/dashboard/dashboard.routes";
+import erpMaterRouter from "./modules/erp-masters/erpMasters.routes";
 
 dotenv.config();
 
@@ -59,8 +63,15 @@ app.use("/api/imageUpload", imageUploadrouter);
 //Product Routs
 app.use("/api/v1/product", productRoutes);
 //shell rout
-
+app.use("/api/v1/sales", salesRoutes);
 //purchase rout
+app.use("/api/v1/purchases", purchaseRoutes);
+//dashboard rout
+app.use("/api/v1/dashboard", dashBoardRouter);
+//erpmasterRout
+app.use("/api/v1/erpmaster", erpMaterRouter);
+
+
 
 
 
