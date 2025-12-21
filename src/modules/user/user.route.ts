@@ -1,12 +1,12 @@
 import { Router } from "express";
 import {
-    login,
-    createUser,
-    getUserById,
-    getMyProfile,
-    getAllUsers,
-    updateMyProfile,
-    updateUserByAdmin,
+  login,
+  createUser,
+  getUserById,
+  getMyProfile,
+  getAllUsers,
+  updateMyProfile,
+  updateUserByAdmin,
 } from "./user.controller";
 import { authenticate } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";

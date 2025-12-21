@@ -15,10 +15,10 @@ import { AppError } from "../../common/error/app-error";
 class UserService {
   async login(data: LoginInput) {
     const user = await userRepository.findByEmail(data.email);
-    if (!user) throw new Error("Invalid credentials");
+    if (!user) throw new AppError("Invalid credentials",400);
 
     const isValid = await bcrypt.compare(data.password, user.passwordHash);
-    if (!isValid) throw new Error("Invalid credentials");
+    if (!isValid) throw new AppError("Invalid credentials",402);
 
     const token = signAccessToken({
       userId: user.id,
