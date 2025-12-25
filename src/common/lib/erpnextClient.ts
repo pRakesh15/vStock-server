@@ -636,17 +636,18 @@ export class ERPNextClient {
 export function createERPNextClientFromEncrypted(
     encryptedCredentials: ERPNextEncryptedCredentials
 ): ERPNextClient {
-    console.log(`tha encryptedApiKey is ${encryptedCredentials.encryptedApiKey}  the encryptedApiSecret is  ${encryptedCredentials.encryptedApiSecret}`, encryptedCredentials.erpDomain)
-
     try {
-        const apiKey = decrypt(
-            parseEncryptedPayload(encryptedCredentials.encryptedApiKey)
-        );
+        if (!encryptedCredentials.encryptedApiKey) {
+            throw new Error("Missing encrypted API key");
+        }
 
-        const apiSecret = decrypt(
-            parseEncryptedPayload(encryptedCredentials.encryptedApiSecret)
-        );
-        console.log(`tha api key is ${apiKey}  the secret is  ${apiSecret}`, encryptedCredentials.erpDomain)
+        if (!encryptedCredentials.encryptedApiSecret) {
+            throw new Error("Missing encrypted API secret");
+        }
+
+        const apiKey = decrypt(encryptedCredentials.encryptedApiKey);
+        const apiSecret = decrypt(encryptedCredentials.encryptedApiSecret);
+
         return new ERPNextClient({
             erpDomain: encryptedCredentials.erpDomain,
             apiKey,

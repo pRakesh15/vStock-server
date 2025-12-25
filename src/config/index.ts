@@ -21,7 +21,8 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.string().default("60000"), // 1 min
   RATE_LIMIT_MAX: z.string().default("200"),
   SHUTDOWN_TIMEOUT_MS: z.string().default("30000"),
-  ERP_SECRET_KEY: z.string().min(32, "ERP_SECRET_KEY must be at least 32 characters")
+  ERP_SECRET_KEY: z.string().min(32, "ERP_SECRET_KEY must be at least 32 characters"),
+  ENCRYPTION_SECRET: z.string().min(32, "ERP_SECRET_KEY must be at least 32 characters")
 });
 
 const _env = envSchema.safeParse(process.env);
@@ -49,4 +50,6 @@ export const config = {
   AWS_SECRET_ACCESS_KEY: _env.data.AWS_SECRET_ACCESS_KEY,
   S3_BUCKET_NAME: _env.data.S3_BUCKET_NAME,
   S3_REGION: _env.data.S3_REGION,
+  ENCRYPTION_SECRET: _env.data.ENCRYPTION_SECRET,
+
 };
