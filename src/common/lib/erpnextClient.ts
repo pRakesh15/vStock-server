@@ -424,22 +424,28 @@ export class ERPNextClient {
         }
     }
 
-    async getSalesInvoices(params?: {
-        limit?: number;
-        offset?: number;
-    }) {
+    async getSalesInvoices(params?: { limit?: number; offset?: number }) {
         const url = new URL(this.getApiUrl("Sales Invoice"));
 
-        url.searchParams.set("fields", JSON.stringify([
-            "name",
-            "customer",
-            "posting_date",
-            "grand_total",
-            "status"
-        ]));
+        url.searchParams.set(
+            "fields",
+            JSON.stringify([
+                "name",
+                "customer",
+                "posting_date",
+                "grand_total",
+                "status",
+            ])
+        );
 
-        if (params?.limit) url.searchParams.set("limit_page_length", String(params.limit));
-        if (params?.offset) url.searchParams.set("limit_start", String(params.offset));
+        url.searchParams.set(
+            "limit_page_length",
+            String(params?.limit ?? 20)
+        );
+
+        if (params?.offset) {
+            url.searchParams.set("limit_start", String(params.offset));
+        }
 
         const response = await fetch(url.toString(), {
             method: "GET",
@@ -449,11 +455,16 @@ export class ERPNextClient {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new AppError("Failed to fetch sales invoices", 401);
+            console.error("ERPNext Sales Invoice fetch failed", {
+                status: response.status,
+                data,
+            });
+            throw new AppError("Failed to fetch sales invoices", response.status);
         }
 
         return data;
     }
+
     async getSalesInvoiceById(id: string) {
         const url = this.getApiUrl(`Sales Invoice/${id}`);
 
@@ -515,16 +526,34 @@ export class ERPNextClient {
     }
 
     private async fetchResource(resource: string) {
-        const url = this.getApiUrl(resource);
-        const res = await fetch(url, { headers: this.getHeaders() });
+        const url = new URL(this.getApiUrl(resource));
+
+        url.searchParams.set("fields", JSON.stringify(["name"]));
+        url.searchParams.set("limit_page_length", "100");
+
+        const res = await fetch(url.toString(), {
+            headers: this.getHeaders(),
+        });
+
         const data = await res.json();
 
         if (!res.ok) {
-            throw new AppError(`Failed to fetch ${resource}`, 500);
+            console.error("ERPNext fetchResource failed", {
+                resource,
+                status: res.status,
+                response: data,
+                url: url.toString(),
+            });
+
+            throw new AppError(
+                `Failed to fetch ${resource}`,
+                res.status === 401 || res.status === 403 ? 403 : 500
+            );
         }
 
-        return data.data;
+        return Array.isArray(data.data) ? data.data : [];
     }
+
 
     async getLowStockItems(threshold: number) {
         const url = new URL(this.getApiUrl("Bin"));
