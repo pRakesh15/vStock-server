@@ -495,22 +495,96 @@ export class ERPNextClient {
             : 0;
     }
 
+
+    private async fetchList(
+        resource: string,
+        params: Record<string, any>
+    ) {
+        const url = new URL(this.getApiUrl(resource));
+
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                url.searchParams.set(key, String(value));
+            }
+        });
+
+        const res = await fetch(url.toString(), {
+            headers: this.getHeaders(),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            console.error(`ERPNext ${resource} fetch error`, {
+                status: res.status,
+                data: data?._server_messages,
+            });
+            throw new AppError(`Failed to fetch ${resource}`, res.status);
+        }
+
+        return data;
+    }
+
+
     // Common resources
     async getCompanies() {
-        return this.fetchResource("Company");
+        return this.fetchList("Company", {
+            fields: JSON.stringify([
+                "name",
+                "company_name",
+                "default_currency",
+                "country",
+            ]),
+            limit_page_length: 50,
+        });
     }
+
 
     async getWarehouses() {
-        return this.fetchResource("Warehouse");
+        return this.fetchList("Warehouse", {
+            fields: JSON.stringify([
+                "name",
+                "warehouse_name",
+                "company",
+                "is_group",
+            ]),
+            limit_page_length: 200,
+        });
     }
 
-    async getSuppliers() {
-        return this.fetchResource("Supplier");
+
+
+    async getSuppliers(params?: { limit?: number; offset?: number }) {
+        return this.fetchList("Supplier", {
+            fields: JSON.stringify([
+                "name",
+                "supplier_name",
+                "supplier_type",
+                "email",
+                "mobile_no",
+            ]),
+            limit_page_length: params?.limit ?? 50,
+            limit_start: params?.offset ?? 0,
+        });
     }
 
-    async getCustomers() {
-        return this.fetchResource("Customer");
+
+
+    async getCustomers(params?: { limit?: number; offset?: number }) {
+        return this.fetchList("Customer", {
+            fields: JSON.stringify([
+                "name",
+                "customer_name",
+                "customer_type",
+                "creation",
+                "modified",
+            ]),
+            limit_page_length: params?.limit ?? 50,
+            limit_start: params?.offset ?? 0,
+        });
     }
+
+
 
     private async fetchResource(resource: string) {
         const url = new URL(this.getApiUrl(resource));
@@ -541,35 +615,22 @@ export class ERPNextClient {
         return Array.isArray(data.data) ? data.data : [];
     }
 
-    async getLowStockItems(threshold: number) {
-        const url = new URL(this.getApiUrl("Bin"));
-
-        url.searchParams.set(
-            "filters",
-            JSON.stringify([["actual_qty", "<=", threshold]])
-        );
-
-        url.searchParams.set(
-            "fields",
-            JSON.stringify([
+    async getLowStockItems(threshold = 10) {
+        return this.fetchList("Bin", {
+            fields: JSON.stringify([
                 "item_code",
                 "warehouse",
-                "actual_qty"
-            ])
-        );
-
-        const res = await fetch(url.toString(), {
-            headers: this.getHeaders(),
+                "actual_qty",
+                "projected_qty",
+            ]),
+            filters: JSON.stringify([
+                ["actual_qty", "<=", threshold],
+            ]),
+            limit_page_length: 200,
         });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new AppError("Failed to fetch low stock items", 500);
-        }
-
-        return data.data;
     }
+
+
 
     // Customer Management Methods
     async createCustomer(payload: Record<string, any>): Promise<ERPNextResponse> {
@@ -737,6 +798,11 @@ export class ERPNextClient {
             throw new AppError("Failed to communicate with ERPNext server", 500);
         }
     }
+
+
+
+    //in this the main error that is 401 Unauthorized  User <strong>erpnext@knitnexus.com</strong> does not have doctype access via role permission for document <strong>Supplier</strong>
+
 
     async createSupplier(payload: Record<string, any>): Promise<ERPNextResponse> {
         const url = this.getApiUrl("Supplier");
