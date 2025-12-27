@@ -18,6 +18,8 @@ import salesRoutes from "./modules/sales/sales.routes";
 import purchaseRoutes from "./modules/purchase/purchase.routes";
 import dashBoardRouter from "./modules/dashboard/dashboard.routes";
 import erpMaterRouter from "./modules/erp-masters/erpMasters.routes";
+import supplierRouter from "./modules/supplier/supplier.routes";
+import customerRouter from "./modules/customer/customer.routes";
 
 dotenv.config();
 
@@ -70,7 +72,10 @@ app.use("/api/v1/purchases", purchaseRoutes);
 app.use("/api/v1/dashboard", dashBoardRouter);
 //erpmasterRout
 app.use("/api/v1/erpmaster", erpMaterRouter);
-
+//suppliersRout
+app.use("/api/v1/suppliers", supplierRouter)
+//customer
+app.use("/api/v1/customers", customerRouter)
 
 
 

@@ -61,7 +61,6 @@ export class ERPNextClient {
             ? this.credentials.erpDomain.slice(0, -1)
             : this.credentials.erpDomain;
 
-        // Ensure protocol is included
         if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
             baseUrl = `https://${baseUrl}`;
         }
@@ -121,7 +120,6 @@ export class ERPNextClient {
             });
 
             throw new AppError("Failed to communicate with ERPNext server", 500);
-
         }
     }
 
@@ -151,7 +149,6 @@ export class ERPNextClient {
                 );
 
                 throw new AppError(errorMessage, 401);
-
             }
 
             return data;
@@ -165,7 +162,6 @@ export class ERPNextClient {
                 url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
             });
             throw new AppError("Failed to communicate with ERPNext server", 500);
-
         }
     }
 
@@ -173,14 +169,11 @@ export class ERPNextClient {
         let url = this.getApiUrl("Item");
         const searchParams = new URLSearchParams();
 
-        // Use util to get correct field names including custom_ ones
         searchParams.append("fields", JSON.stringify(getERPItemFieldNames()));
 
-        // Filters (optional)
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
                 if (value !== undefined) {
-                    // Ensure custom fields are correctly named in filters too
                     const isCustom = [
                         "size",
                         "colour",
@@ -226,10 +219,8 @@ export class ERPNextClient {
                 );
 
                 throw new AppError(errorMessage, 401);
-
             }
 
-            // Optional: map ERP response to frontend format
             if (Array.isArray(data.data)) {
                 data.data = data.data.map(mapERPItemToProduct);
             }
@@ -244,7 +235,6 @@ export class ERPNextClient {
             });
 
             throw new AppError("Failed to communicate with ERPNext server", 500);
-
         }
     }
 
@@ -273,7 +263,6 @@ export class ERPNextClient {
                 );
 
                 throw new AppError(errorMessage, 401);
-
             }
 
             return data;
@@ -286,7 +275,6 @@ export class ERPNextClient {
             });
 
             throw new AppError("Failed to communicate with ERPNext server", 500);
-
         }
     }
 
@@ -363,6 +351,7 @@ export class ERPNextClient {
 
         return data;
     }
+
     async getPurchaseInvoiceById(id: string) {
         const url = this.getApiUrl(`Purchase Invoice/${id}`);
 
@@ -379,7 +368,6 @@ export class ERPNextClient {
 
         return data;
     }
-
 
     async createSalesInvoice(
         payload: ERPNextSalesInvoicePayload
@@ -507,8 +495,7 @@ export class ERPNextClient {
             : 0;
     }
 
-    //common resources
-
+    // Common resources
     async getCompanies() {
         return this.fetchResource("Company");
     }
@@ -554,7 +541,6 @@ export class ERPNextClient {
         return Array.isArray(data.data) ? data.data : [];
     }
 
-
     async getLowStockItems(threshold: number) {
         const url = new URL(this.getApiUrl("Bin"));
 
@@ -585,7 +571,556 @@ export class ERPNextClient {
         return data.data;
     }
 
+    // Customer Management Methods
+    async createCustomer(payload: Record<string, any>): Promise<ERPNextResponse> {
+        const url = this.getApiUrl("Customer");
 
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to create customer in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async updateCustomer(customerId: string, payload: Record<string, any>): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Customer/${customerId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "PUT",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to update customer in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async deleteCustomer(customerId: string): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Customer/${customerId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "DELETE",
+                headers: this.getHeaders(),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    data.message || data.exc || "Failed to delete customer in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async getCustomerById(customerId: string): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Customer/${customerId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                headers: this.getHeaders(),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    data.message || data.exc || "Customer not found"
+                );
+
+                throw new AppError(errorMessage, response.status === 404 ? 404 : 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async createSupplier(payload: Record<string, any>): Promise<ERPNextResponse> {
+        const url = this.getApiUrl("Supplier");
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+            console.log(response);
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to create supplier in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async updateSupplier(supplierId: string, payload: Record<string, any>): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Supplier/${supplierId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "PUT",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to update supplier in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async deleteSupplier(supplierId: string): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Supplier/${supplierId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "DELETE",
+                headers: this.getHeaders(),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    data.message || data.exc || "Failed to delete supplier in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async getSupplierById(supplierId: string): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Supplier/${supplierId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                headers: this.getHeaders(),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    data.message || data.exc || "Supplier not found"
+                );
+
+                throw new AppError(errorMessage, response.status === 404 ? 404 : 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    // Address Management Methods
+    async createAddress(payload: Record<string, any>): Promise<ERPNextResponse> {
+        const url = this.getApiUrl("Address");
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to create address in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async updateAddress(addressId: string, payload: Record<string, any>): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Address/${addressId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "PUT",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to update address in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async deleteAddress(addressId: string): Promise<ERPNextResponse> {
+        const url = this.getApiUrl(`Address/${addressId}`);
+
+        try {
+            const response = await fetch(url, {
+                method: "DELETE",
+                headers: this.getHeaders(),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    data.message || data.exc || "Failed to delete address in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    async getAddressesByEntity(linkDoctype: string, linkName: string): Promise<ERPNextResponse> {
+        const url = new URL(this.getApiUrl("Address"));
+
+        url.searchParams.set(
+            "filters",
+            JSON.stringify([
+                ["Dynamic Link", "link_doctype", "=", linkDoctype],
+                ["Dynamic Link", "link_name", "=", linkName]
+            ])
+        );
+
+        try {
+            const response = await fetch(url.toString(), {
+                method: "GET",
+                headers: this.getHeaders(),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data,
+                    url: url.toString().replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    data.message || data.exc || "Failed to fetch addresses"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) throw error;
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
+
+    // Contact Management Methods
+    async createContact(payload: Record<string, any>): Promise<ERPNextResponse> {
+        const url = this.getApiUrl("Contact");
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: this.getHeaders(),
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("ERPNext API Error:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data._server_messages,
+                    url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+                });
+
+                const errorMessage = parseERPNextErrorMessage(
+                    data._server_messages,
+                    "Failed to create contact in ERPNext"
+                );
+
+                throw new AppError(errorMessage, 401);
+            }
+
+            return data;
+        } catch (error) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            console.error("ERPNext Client Error:", {
+                message: error instanceof Error ? error.message : "Unknown error",
+                url: url.replace(this.credentials.apiSecret, "[REDACTED]"),
+            });
+
+            throw new AppError("Failed to communicate with ERPNext server", 500);
+        }
+    }
 
     async testConnection(): Promise<{
         success: boolean;
@@ -593,7 +1128,7 @@ export class ERPNextClient {
         error?: string;
     }> {
         const url = this.getMethodUrl("frappe.auth.get_logged_user");
-        console.log(url)
+
         try {
             const response = await fetch(url, {
                 method: "GET",

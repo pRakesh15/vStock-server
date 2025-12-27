@@ -2,24 +2,28 @@ import { z } from "zod";
 
 export const createCustomerSchema = z.object({
   gstin: z.string().optional(),
+
   customer_name: z.string().min(2),
   customer_type: z.literal("Company"),
   gst_category: z.string().default("Unregistered"),
 
-  first_name: z.string(),
+  // Contact (optional)
+  first_name: z.string().optional(),
   last_name: z.string().optional(),
-  email: z.string().email(),
-  mobile_no: z.string(),
+  email: z.string().email().optional(),
+  mobile_no: z.string().optional(),
 
-  address_line1: z.string(),
+  // Address (optional)
+  address_line1: z.string().optional(),
   address_line2: z.string().optional(),
-  pincode: z.string(),
-  city: z.string(),
-  state: z.string(),
+  pincode: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
   country: z.string().default("India"),
 
-  is_primary_address: z.boolean().default(true),
-  is_shipping_address: z.boolean().default(true),
+  // UI flags (not sent to ERP directly)
+  is_primary_address: z.boolean().optional().default(true),
+  is_shipping_address: z.boolean().optional().default(true),
 });
 
 export const editCustomerSchema = createCustomerSchema.partial();
