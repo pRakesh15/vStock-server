@@ -559,8 +559,6 @@ export class ERPNextClient {
             fields: JSON.stringify([
                 "name",
                 "supplier_name",
-                "supplier_type",
-                "email",
                 "mobile_no",
             ]),
             limit_page_length: params?.limit ?? 50,
